@@ -63,7 +63,7 @@ const LISTENERS_TO_OVERWRITE = [
 function getNodesToRender({data, height, hideRootNode, width, getSize}) {
   const partitionFunction = partition();
   const structuredInput = hierarchy(data).sum(getSize);
-  const radius = (Math.min(width, height) / 2) - 10;
+  const radius = (Math.min(width, height) / 2) - 100;
   const x = scaleLinear().range([0, 2 * Math.PI]);
   const y = scaleSqrt().range([0, radius]);
 
