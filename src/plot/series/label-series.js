@@ -19,6 +19,7 @@
 // THE SOFTWARE.
 
 import React from 'react';
+import * as d3 from 'd3';
 import PropTypes from 'prop-types';
 import AbstractSeries from './abstract-series';
 import Animation from 'animation';
@@ -31,6 +32,20 @@ const getTextAnchor = (labelAnchorX, leftOfMiddle) => {
 const getAlignmentBaseline = (labelAnchorY, aboveMiddle) => {
   return labelAnchorY ? labelAnchorY : (aboveMiddle ? 'text-before-edge' : 'text-after-edge');
 };
+
+function truncatedText(label, width) {
+  const svg = d3.select('body').append('svg').attr('opacity', 0);
+  const svgText = svg.append('text').text(label);
+  let textLength = svgText.node().getComputedTextLength();
+  let text = label;
+  while (textLength > (width - 2) && text.length > 0) {
+    text = text.slice(0, -1);
+    svgText.text(`${text}...`);
+    textLength = svgText.node().getComputedTextLength();
+  }
+  svg.remove();
+  return `${text}...`;
+}
 
 class LabelSeries extends AbstractSeries {
   render() {
@@ -98,7 +113,7 @@ class LabelSeries extends AbstractSeries {
             transform: `rotate(${d.rotation || rotation},${x},${y})`,
             ...markStyle
           };
-          const textContent = getLabel(_data ? _data[i] : d);
+          const textContent = truncatedText(getLabel(_data ? _data[i] : d), 70);
           return res.concat([<text {...attrs}>{textContent}</text>]);
         }, [])}
       </g>

@@ -29,9 +29,10 @@ import {
   scaleLinear,
   scaleSqrt
 } from 'd3-scale';
+import {arc as arcBuilder} from 'd3-shape';
 
 import {AnimationPropType} from 'animation';
-import LabelSeries from 'plot/series/label-series';
+import LabelSeries from '../plot/series/label-series';
 import ArcSeries from 'plot/series/arc-series';
 import XYPlot from 'plot/xy-plot';
 import {getRadialDomain} from 'utils/series-utils';
@@ -58,12 +59,13 @@ const LISTENERS_TO_OVERWRITE = [
    props.hideRootNode {boolean} - whether or not to hide the root node
    props.width {number} - the width of the graphic to be rendered
    props.getSize {function} - accessor for the size
- * @returns {Array} Array of nodes.
+ * @returns {Array} Array of nodes.,
+ * multiplier
  */
 function getNodesToRender({data, height, hideRootNode, width, getSize}) {
   const partitionFunction = partition();
   const structuredInput = hierarchy(data).sum(getSize);
-  const radius = (Math.min(width, height) / 2) - 100;
+  const radius = (Math.min(width, height) / 4);
   const x = scaleLinear().range([0, 2 * Math.PI]);
   const y = scaleSqrt().range([0, radius]);
 
@@ -73,11 +75,28 @@ function getNodesToRender({data, height, hideRootNode, width, getSize}) {
         return res;
       }
 
+      const depthMultipler = [
+        0, // center
+        0.5,
+        1,
+        1.5,
+        2,
+        2.5,
+      ];
+
+      const getInnerMultipler = (depth) => {
+        return depthMultipler[depth];
+      }
+
+      const getOuterMultipler = (depth) => {
+        return depthMultipler[depth + 1];
+      }
+
       return res.concat([{
         angle0: Math.max(0, Math.min(2 * Math.PI, x(cell.x0))),
         angle: Math.max(0, Math.min(2 * Math.PI, x(cell.x1))),
-        radius0: Math.max(0, y(cell.y0)),
-        radius: Math.max(0, y(cell.y1)),
+        radius0: Math.max(0, y(cell.y0)) * getInnerMultipler(cell.depth),
+        radius: Math.max(0, y(cell.y1)) * getOuterMultipler(cell.depth),
         depth: cell.depth,
         parent: cell.parent,
         ...cell.data
@@ -97,32 +116,52 @@ function buildLabels(mappedData, accessors) {
     getAngle,
     getAngle0,
     getLabel,
+    getRadius,
     getRadius0
   } = accessors;
 
   return mappedData
   .filter(getLabel)
   .map(row => {
+    const radius = (getRadius(row) + getRadius0(row)) / 2;
     const truedAngle = -1 * getAngle(row) + Math.PI / 2;
     const truedAngle0 = -1 * getAngle0(row) + Math.PI / 2;
     const angle = (truedAngle0 + truedAngle) / 2;
+    const hypotenuse = [Math.cos(angle) * radius, Math.sin(angle) * radius];
     const rotateLabels = !row.dontRotateLabel;
     const rotAngle = -angle / (2 * Math.PI) * 360;
+    const fontSize = 10;
+    const rotation = rotateLabels ? (
+      rotAngle > 90 ? (rotAngle + 180) :
+      rotAngle === 90 ? 90 : (rotAngle)) : null;
+    let fontSizeOffset = fontSize;
+    const quarterOfQuarterArc = 45 / 2;
+
+    // if (
+    //   (rotation >= (90 - quarterOfQuarterArc) && rotation <= (270 + quarterOfQuarterArc)) ||
+    //   rotation >= (450 - quarterOfQuarterArc) ||
+    //   (rotation >= -90 && rotation <= -90 + quarterOfQuarterArc)) {
+    //   fontSizeOffset = fontSize / 2;
+    // }
+
+    // console.log(rotation, fontSizeOffset);
+
+    let offset = (rotation >= 0) ? (rotation > 270) ? fontSizeOffset : -fontSizeOffset : fontSizeOffset;
 
     return {
       ...row,
       children: null,
       angle: null,
       radius: null,
-      x: getRadius0(row) * Math.cos(angle),
-      y: getRadius0(row) * Math.sin(angle),
+      x: hypotenuse[0],
+      y: hypotenuse[1] + offset,
       style: {
-        textAnchor: rotAngle > 90 ? 'end' : 'start',
+        // textAnchor: rotAngle > 90 ? 'end' : 'start',
+        textAnchor: 'middle',
+        width: radius,
         ...row.labelStyle
       },
-      rotation: rotateLabels ? (
-        rotAngle > 90 ? (rotAngle + 180) :
-        rotAngle === 90 ? 90 : (rotAngle)) : null
+      rotation
     };
   });
 }
@@ -148,12 +187,12 @@ class Sunburst extends React.Component {
     const mappedData = getNodesToRender({data, height, hideRootNode, width, getSize});
     const radialDomain = getRadialDomain(mappedData);
     const margin = getRadialLayoutMargin(width, height, radialDomain);
-
     const labelData = buildLabels(mappedData, {
       getAngle,
       getAngle0,
       getLabel,
-      getRadius0: d => d.radius0
+      getRadius: d => d.radius,
+      getRadius0: d => d.radius0,
     });
 
     const hofBuilder = f => (e, i) => f ? f(mappedData[e.index], i) : NOOP;
@@ -170,7 +209,6 @@ class Sunburst extends React.Component {
           colorType,
           ...this.props,
           animation,
-          radiusDomain: [0, radialDomain],
           // need to present a stripped down version for interpolation
           data: animation ?
             mappedData.map((row, index) => ({...row, parent: null, children: null, index})) :

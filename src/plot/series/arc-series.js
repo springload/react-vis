@@ -182,22 +182,46 @@ class ArcSeries extends AbstractSeries {
           const arcedData = arcBuilder();
           const rowStyle = row.style || {};
           const rowClassName = row.className || '';
-          return (<path {...{
-            style: {
-              opacity: opacity && opacity(row),
-              stroke: stroke && stroke(row),
-              fill: fill && fill(row),
-              ...style,
-              ...rowStyle
-            },
-            onClick: e => this._valueClickHandler(modifyRow(row), e),
-            onContextMenu: e => this._valueRightClickHandler(modifyRow(row), e),
-            onMouseOver: e => this._valueMouseOverHandler(modifyRow(row), e),
-            onMouseOut: e => this._valueMouseOutHandler(modifyRow(row), e),
-            key: i,
-            className: `${predefinedClassName}-path ${arcClassName} ${rowClassName}`,
-            d: arcedData(arcArg)
-          }} />);
+          const radiusDiff = radius(row) - radius0(row);
+          const status = row.status || 0;
+          const completion = radiusDiff * status;
+          const statusArg = {
+            innerRadius: noRadius ? 0 : radius0(row) + (radiusDiff - completion),
+            outerRadius: radius(row),
+            startAngle: angle0(row),
+            endAngle: angle(row)
+          };
+          return (
+            <g key={i}>
+              <path {...{
+                style: {
+                  opacity: opacity && opacity(row),
+                  stroke: stroke && stroke(row),
+                  fill: fill && fill(row),
+                  ...style,
+                  ...rowStyle
+                },
+                onClick: e => this._valueClickHandler(modifyRow(row), e),
+                onContextMenu: e => this._valueRightClickHandler(modifyRow(row), e),
+                onMouseOver: e => this._valueMouseOverHandler(modifyRow(row), e),
+                onMouseOut: e => this._valueMouseOutHandler(modifyRow(row), e),
+                className: `${predefinedClassName}-path ${arcClassName} ${rowClassName}`,
+                d: arcedData(arcArg)
+              }} />
+              {!!completion &&
+                <path {...{
+                  style: {
+                    opacity: 0.2,
+                    stroke: stroke && stroke(row),
+                    fill: '#000',
+                    ...style,
+                    ...rowStyle
+                  },
+                  className: `${predefinedClassName}-path ${arcClassName} ${rowClassName}`,
+                  d: arcedData(statusArg)
+                }} />}
+            </g>
+          );
         })}
       </g>
     );
