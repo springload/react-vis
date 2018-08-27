@@ -40,11 +40,11 @@ function truncatedText(label, width) {
   let text = label;
   while (textLength > (width - 2) && text.length > 0) {
     text = text.slice(0, -1);
-    svgText.text(`${text}...`);
+    svgText.text(`${text}`);
     textLength = svgText.node().getComputedTextLength();
   }
   svg.remove();
-  return `${text}...`;
+  return `${text}`;
 }
 
 class LabelSeries extends AbstractSeries {
@@ -113,7 +113,7 @@ class LabelSeries extends AbstractSeries {
             transform: `rotate(${d.rotation || rotation},${x},${y})`,
             ...markStyle
           };
-          const textContent = truncatedText(getLabel(_data ? _data[i] : d), 70);
+          const textContent = truncatedText(getLabel(_data ? _data[i] : d), d.width);
           return res.concat([<text {...attrs}>{textContent}</text>]);
         }, [])}
       </g>

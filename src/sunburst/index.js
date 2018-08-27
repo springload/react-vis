@@ -92,11 +92,15 @@ function getNodesToRender({data, height, hideRootNode, width, getSize}) {
         return depthMultipler[depth + 1];
       }
 
+      const endRadius = Math.max(0, y(cell.y1)) * getOuterMultipler(cell.depth);
+      const startRadius = Math.max(0, y(cell.y0)) * getInnerMultipler(cell.depth);
+
       return res.concat([{
         angle0: Math.max(0, Math.min(2 * Math.PI, x(cell.x0))),
         angle: Math.max(0, Math.min(2 * Math.PI, x(cell.x1))),
-        radius0: Math.max(0, y(cell.y0)) * getInnerMultipler(cell.depth),
-        radius: Math.max(0, y(cell.y1)) * getOuterMultipler(cell.depth),
+        radius0: startRadius,
+        radius: endRadius,
+        width: endRadius - startRadius,
         depth: cell.depth,
         parent: cell.parent,
         ...cell.data
@@ -134,19 +138,19 @@ function buildLabels(mappedData, accessors) {
     const rotation = rotateLabels ? (
       rotAngle > 90 ? (rotAngle + 180) :
       rotAngle === 90 ? 90 : (rotAngle)) : null;
-    let fontSizeOffset = fontSize;
-    const quarterOfQuarterArc = 45 / 2;
+    // let fontSizeOffset = fontSize;
+    // const quarterOfQuarterArc = 45 / 2;
 
     // if (
-    //   (rotation >= (90 - quarterOfQuarterArc) && rotation <= (270 + quarterOfQuarterArc)) ||
+    //   (rotation >= (90 - quarterOfQuarterArc) &&
+    //     rotation <= (270 + quarterOfQuarterArc)) ||
     //   rotation >= (450 - quarterOfQuarterArc) ||
     //   (rotation >= -90 && rotation <= -90 + quarterOfQuarterArc)) {
     //   fontSizeOffset = fontSize / 2;
     // }
+    // console.log('rotation', rotation, hypotenuse, fontSizeOffset);
 
-    // console.log(rotation, fontSizeOffset);
-
-    let offset = (rotation >= 0) ? (rotation > 270) ? fontSizeOffset : -fontSizeOffset : fontSizeOffset;
+    // const offset = (rotation >= 0) ? (rotation > 270) ? fontSizeOffset : -fontSizeOffset : fontSizeOffset;
 
     return {
       ...row,
@@ -154,7 +158,7 @@ function buildLabels(mappedData, accessors) {
       angle: null,
       radius: null,
       x: hypotenuse[0],
-      y: hypotenuse[1] + offset,
+      y: hypotenuse[1],
       style: {
         // textAnchor: rotAngle > 90 ? 'end' : 'start',
         textAnchor: 'middle',
@@ -193,6 +197,7 @@ class Sunburst extends React.Component {
       getLabel,
       getRadius: d => d.radius,
       getRadius0: d => d.radius0,
+      width: d => d.width
     });
 
     const hofBuilder = f => (e, i) => f ? f(mappedData[e.index], i) : NOOP;
@@ -221,7 +226,7 @@ class Sunburst extends React.Component {
             return acc;
           }, {}))
         }}/>
-        {labelData.length > 0 && (<LabelSeries data={labelData} getLabel={getLabel}/>)}
+        {labelData.length > 0 && (<LabelSeries labelAnchorX="middle" labelAnchorY="middle" data={labelData} getLabel={getLabel}/>)}
         {children}
       </XYPlot>
     );
