@@ -81,7 +81,16 @@ function getNodesToRender({data, height, hideRootNode, width, getSize}) {
         1,
         1.5,
         2,
-        2.5,
+        2.5
+      ];
+
+      const fontMultiplier = [
+        25,
+        19,
+        17,
+        15,
+        13,
+        12
       ];
 
       const getInnerMultipler = (depth) => {
@@ -103,6 +112,7 @@ function getNodesToRender({data, height, hideRootNode, width, getSize}) {
         width: endRadius - startRadius,
         depth: cell.depth,
         parent: cell.parent,
+        fontSize: fontMultiplier[cell.depth],
         ...cell.data
       }]);
     }, []);
@@ -121,7 +131,8 @@ function buildLabels(mappedData, accessors) {
     getAngle0,
     getLabel,
     getRadius,
-    getRadius0
+    getRadius0,
+    getFontSize
   } = accessors;
 
   return mappedData
@@ -134,7 +145,7 @@ function buildLabels(mappedData, accessors) {
     const hypotenuse = [Math.cos(angle) * radius, Math.sin(angle) * radius];
     const rotateLabels = !row.dontRotateLabel;
     const rotAngle = -angle / (2 * Math.PI) * 360;
-    const fontSize = 10;
+    // const fontSize = 10;
     const rotation = rotateLabels ? (
       rotAngle > 90 ? (rotAngle + 180) :
       rotAngle === 90 ? 90 : (rotAngle)) : null;
@@ -162,7 +173,7 @@ function buildLabels(mappedData, accessors) {
       style: {
         // textAnchor: rotAngle > 90 ? 'end' : 'start',
         textAnchor: 'middle',
-        width: radius,
+        fontSize: getFontSize(row),
         ...row.labelStyle
       },
       rotation
@@ -197,7 +208,8 @@ class Sunburst extends React.Component {
       getLabel,
       getRadius: d => d.radius,
       getRadius0: d => d.radius0,
-      width: d => d.width
+      width: d => d.width,
+      getFontSize: d => d.fontSize
     });
 
     const hofBuilder = f => (e, i) => f ? f(mappedData[e.index], i) : NOOP;

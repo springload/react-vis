@@ -33,9 +33,9 @@ const getAlignmentBaseline = (labelAnchorY, aboveMiddle) => {
   return labelAnchorY ? labelAnchorY : (aboveMiddle ? 'text-before-edge' : 'text-after-edge');
 };
 
-function truncatedText(label, width) {
+function truncatedText(label, width, fontSize) {
   const svg = d3.select('body').append('svg').attr('opacity', 0);
-  const svgText = svg.append('text').text(label);
+  const svgText = svg.append('text').attr('font-size', `${fontSize}px`).text(label);
   let textLength = svgText.node().getComputedTextLength();
   let text = label;
   while (textLength > (width - 2) && text.length > 0) {
@@ -113,7 +113,7 @@ class LabelSeries extends AbstractSeries {
             transform: `rotate(${d.rotation || rotation},${x},${y})`,
             ...markStyle
           };
-          const textContent = truncatedText(getLabel(_data ? _data[i] : d), d.width);
+          const textContent = truncatedText(getLabel(_data ? _data[i] : d), d.width, d.fontSize);
           return res.concat([<text {...attrs}>{textContent}</text>]);
         }, [])}
       </g>
