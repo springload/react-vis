@@ -86,11 +86,11 @@ function getNodesToRender({data, height, hideRootNode, width, getSize}) {
 
       const fontMultiplier = [
         25,
-        19,
-        17,
-        15,
-        13,
-        12
+        18,
+        14,
+        11,
+        10,
+        9
       ];
 
       const getInnerMultipler = (depth) => {
@@ -145,23 +145,9 @@ function buildLabels(mappedData, accessors) {
     const hypotenuse = [Math.cos(angle) * radius, Math.sin(angle) * radius];
     const rotateLabels = !row.dontRotateLabel;
     const rotAngle = -angle / (2 * Math.PI) * 360;
-    // const fontSize = 10;
     const rotation = rotateLabels ? (
       rotAngle > 90 ? (rotAngle + 180) :
       rotAngle === 90 ? 90 : (rotAngle)) : null;
-    // let fontSizeOffset = fontSize;
-    // const quarterOfQuarterArc = 45 / 2;
-
-    // if (
-    //   (rotation >= (90 - quarterOfQuarterArc) &&
-    //     rotation <= (270 + quarterOfQuarterArc)) ||
-    //   rotation >= (450 - quarterOfQuarterArc) ||
-    //   (rotation >= -90 && rotation <= -90 + quarterOfQuarterArc)) {
-    //   fontSizeOffset = fontSize / 2;
-    // }
-    // console.log('rotation', rotation, hypotenuse, fontSizeOffset);
-
-    // const offset = (rotation >= 0) ? (rotation > 270) ? fontSizeOffset : -fontSizeOffset : fontSizeOffset;
 
     return {
       ...row,
@@ -171,7 +157,6 @@ function buildLabels(mappedData, accessors) {
       x: hypotenuse[0],
       y: hypotenuse[1],
       style: {
-        // textAnchor: rotAngle > 90 ? 'end' : 'start',
         textAnchor: 'middle',
         fontSize: getFontSize(row),
         ...row.labelStyle

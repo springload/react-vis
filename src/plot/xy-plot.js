@@ -538,16 +538,12 @@ class XYPlot extends React.Component {
     }
     const components = this._getClonedChildComponents();
     return (
-      <div
-        style={{
-          width: `${width}px`,
-          height: `${height}px`
-        }}
-        className={`rv-xy-plot ${className}`}>
+      <div className={`rv-xy-plot ${className}`}>
         <svg
           className="rv-xy-plot__inner"
-          width={width}
-          height={height}
+          width="100%"
+          height="100%"
+          viewBox={`0 0 ${width} ${height}`}
           style={style}
           onClick={this._clickHandler}
           onDoubleClick={this._doubleClickHandler}
