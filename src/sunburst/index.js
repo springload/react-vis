@@ -86,11 +86,11 @@ function getNodesToRender({data, height, hideRootNode, width, getSize}) {
 
       const fontMultiplier = [
         25,
-        18,
-        14,
+        16,
         11,
-        10,
-        9
+        9,
+        8,
+        7
       ];
 
       const getInnerMultipler = (depth) => {

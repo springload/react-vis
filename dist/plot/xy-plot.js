@@ -656,8 +656,7 @@ var XYPlot = function (_React$Component) {
           'svg',
           {
             className: 'rv-xy-plot__inner',
-            width: width,
-            height: height,
+            viewBox: '0 0 ' + width + ' ' + height,
             style: style,
             onClick: this._clickHandler,
             onDoubleClick: this._doubleClickHandler,
