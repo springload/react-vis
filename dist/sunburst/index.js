@@ -102,7 +102,7 @@ function getNodesToRender(_ref) {
     var depthMultipler = [0, // center
     0.5, 1, 1.5, 2, 2.5];
 
-    var fontMultiplier = [25, 16, 11, 9, 8, 7];
+    var fontMultiplier = [25, 17.5, 11.5, 10.5, 9.5, 8.5];
 
     var getInnerMultipler = function getInnerMultipler(depth) {
       return depthMultipler[depth];
